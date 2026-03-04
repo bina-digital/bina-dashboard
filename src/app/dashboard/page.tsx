@@ -10,9 +10,14 @@ export default function DashboardPage() {
   return (
     <main className="min-h-screen bg-slate-950 text-slate-100 p-6">
       <div className="max-w-6xl mx-auto space-y-8">
-        <header>
-          <h1 className="text-2xl font-bold">Bina Command Center</h1>
-          <p className="text-slate-400">Agents and projects are now wired into this dashboard view.</p>
+        <header className="flex items-center justify-between gap-4 flex-wrap">
+          <div>
+            <h1 className="text-2xl font-bold">Bina Command Center</h1>
+            <p className="text-slate-400">Agents and projects are now wired into this dashboard view.</p>
+          </div>
+          <div className="flex gap-2">
+            <a href="/kanban" className="text-sm px-3 py-2 rounded bg-cyan-500 text-slate-950 font-semibold">Open Kanban</a>
+          </div>
         </header>
 
         <section>
