@@ -9,12 +9,12 @@ export default async function Dashboard() {
   const pipeline = await getPipelineStats();
 
   const pipelineStages = [
-    { stage: "Contacted via WhatsApp", count: stats.customers, color: "bg-blue-500" },
-    { stage: "Responded Positively", count: pipeline.responded, color: "bg-purple-500" },
-    { stage: "Awaiting Transfer Slip", count: stats.pendingSlips, color: "bg-amber-500" },
-    { stage: "Processing with MRI", count: pipeline.inTransaction, color: "bg-cyan-500" },
+    { stage: "Leads Contacted", count: stats.customers, color: "bg-blue-500" },
+    { stage: "Discovery / Response", count: pipeline.responded, color: "bg-purple-500" },
+    { stage: "Awaiting Client Input", count: stats.pendingSlips, color: "bg-amber-500" },
+    { stage: "In Delivery", count: pipeline.inTransaction, color: "bg-cyan-500" },
     { stage: "Completed", count: pipeline.completed, color: "bg-emerald-500" },
-    { stage: "Failed / Resolving", count: pipeline.failed, color: "bg-red-500" },
+    { stage: "Blocked / At Risk", count: pipeline.failed, color: "bg-red-500" },
   ];
 
   const getStatusColor = (status: string) => {
@@ -45,49 +45,49 @@ export default async function Dashboard() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold">Dashboard Overview</h1>
-            <p className="text-slate-400">Real-time insights into your remittance operations</p>
+            <h1 className="text-2xl font-bold">Agency Dashboard Overview</h1>
+            <p className="text-slate-400">Real-time insights into Bina Digital delivery operations</p>
           </div>
           <div className="flex items-center gap-3">
             <div className="px-4 py-2 bg-emerald-500/10 border border-emerald-500/30 rounded-lg">
-              <span className="text-sm text-emerald-400">1 MYR = 3,250 IDR</span>
+              <span className="text-sm text-emerald-400">Agency Mode • Revenue First</span>
             </div>
-            <button className="px-4 py-2 bg-blue-600 hover:bg-blue-500 rounded-lg font-medium transition-colors">
-              + New Transaction
-            </button>
+            <a href="/kanban" className="px-4 py-2 bg-blue-600 hover:bg-blue-500 rounded-lg font-medium transition-colors">
+              + New Task
+            </a>
           </div>
         </div>
 
         {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <StatCard
-            title="Total Customers"
+            title="Total Leads"
             value={stats.customers.toLocaleString()}
-            subtitle="In database"
+            subtitle="In pipeline"
             trend="+12%"
             trendUp={true}
             color="blue"
           />
           <StatCard
-            title="Total Transactions"
+            title="Total Work Items"
             value={stats.totalTransactions.toLocaleString()}
-            subtitle="All time"
+            subtitle="All projects"
             trend="+8%"
             trendUp={true}
             color="purple"
           />
           <StatCard
-            title="Completed"
+            title="Completed Deliverables"
             value={stats.completed.toLocaleString()}
-            subtitle="Successful"
+            subtitle="Shipped"
             trend="+15%"
             trendUp={true}
             color="emerald"
           />
           <StatCard
-            title="Revenue"
+            title="Revenue Tracked"
             value={`RM ${stats.revenue.toLocaleString()}`}
-            subtitle="@ RM4/transaction"
+            subtitle="Income dashboard"
             trend="+10%"
             trendUp={true}
             color="amber"
@@ -98,10 +98,10 @@ export default async function Dashboard() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-6">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="font-semibold">Awaiting Slips</h3>
+              <h3 className="font-semibold">Awaiting Dependencies</h3>
               <span className="text-amber-400 font-bold">{stats.pendingSlips}</span>
             </div>
-            <p className="text-sm text-slate-400">Customers waiting to send bank slips</p>
+            <p className="text-sm text-slate-400">Tasks waiting on client/input dependencies</p>
             <div className="mt-4 w-full bg-slate-800 rounded-full h-2">
               <div className="h-2 rounded-full bg-amber-500" style={{ width: `${Math.min(stats.pendingSlips * 2, 100)}%` }} />
             </div>
@@ -109,10 +109,10 @@ export default async function Dashboard() {
 
           <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-6">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="font-semibold">Processing Now</h3>
+              <h3 className="font-semibold">In Execution</h3>
               <span className="text-cyan-400 font-bold">{stats.processing}</span>
             </div>
-            <p className="text-sm text-slate-400">Transactions with MRI</p>
+            <p className="text-sm text-slate-400">Active delivery tasks</p>
             <div className="mt-4 w-full bg-slate-800 rounded-full h-2">
               <div className="h-2 rounded-full bg-cyan-500" style={{ width: `${Math.min(stats.processing * 5, 100)}%` }} />
             </div>
@@ -120,10 +120,10 @@ export default async function Dashboard() {
 
           <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-6">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="font-semibold">Failed</h3>
+              <h3 className="font-semibold">Blocked</h3>
               <span className="text-red-400 font-bold">{stats.failed}</span>
             </div>
-            <p className="text-sm text-slate-400">Requires attention</p>
+            <p className="text-sm text-slate-400">Requires intervention</p>
             <div className="mt-4 w-full bg-slate-800 rounded-full h-2">
               <div className="h-2 rounded-full bg-red-500" style={{ width: `${Math.min(stats.failed * 10, 100)}%` }} />
             </div>
@@ -134,7 +134,7 @@ export default async function Dashboard() {
           {/* Pipeline */}
           <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-6">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-lg font-semibold">Customer Pipeline</h2>
+              <h2 className="text-lg font-semibold">Delivery Pipeline</h2>
               <button className="text-sm text-blue-400 hover:text-blue-300">View All →</button>
             </div>
 
@@ -163,15 +163,15 @@ export default async function Dashboard() {
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                <h2 className="text-lg font-semibold">Recent Transactions</h2>
+                <h2 className="text-lg font-semibold">Recent Work Items</h2>
               </div>
               <a href="/transactions" className="text-sm text-blue-400 hover:text-blue-300">View All →</a>
             </div>
 
             {recentTransactions.length === 0 ? (
               <div className="text-center py-8 text-slate-400">
-                <p>No transactions yet</p>
-                <p className="text-sm mt-2">Complete a transaction in WhatsApp to see it here</p>
+                <p>No work items yet</p>
+                <p className="text-sm mt-2">Create and move tasks in Kanban to see live activity here</p>
               </div>
             ) : (
               <div className="overflow-x-auto">
@@ -179,8 +179,8 @@ export default async function Dashboard() {
                   <thead>
                     <tr className="text-left text-sm text-slate-400 border-b border-slate-800">
                       <th className="pb-3 font-medium">Reference</th>
-                      <th className="pb-3 font-medium">Recipient</th>
-                      <th className="pb-3 font-medium">Amount</th>
+                      <th className="pb-3 font-medium">Project/Owner</th>
+                      <th className="pb-3 font-medium">Value</th>
                       <th className="pb-3 font-medium">Status</th>
                       <th className="pb-3 font-medium">Time</th>
                     </tr>

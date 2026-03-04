@@ -36,12 +36,12 @@ export default function DashboardLayout({
         <div className="p-6 border-b border-slate-800">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-xl">
-              🌙
+              🦁
             </div>
             {sidebarOpen && (
               <div>
-                <h1 className="font-bold text-lg">MRI</h1>
-                <p className="text-xs text-slate-400">Remittance</p>
+                <h1 className="font-bold text-lg">Bina</h1>
+                <p className="text-xs text-slate-400">Command Center</p>
               </div>
             )}
           </div>

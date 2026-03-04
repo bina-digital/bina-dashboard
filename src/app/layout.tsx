@@ -5,8 +5,8 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "MRI Dashboard - Mandiri Remittance International",
-  description: "Professional remittance management system",
+  title: "Bina Dashboard - Agency Command Center",
+  description: "Development operations dashboard for Bina Digital projects and agents",
 };
 
 export default function RootLayout({
