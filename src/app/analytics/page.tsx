@@ -53,7 +53,7 @@ export default function Analytics() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold">Analytics</h1>
-            <p className="text-slate-400">Deep insights into your remittance business</p>
+            <p className="text-slate-400">Deep insights into agency delivery and revenue operations</p>
           </div>
           <div className="flex gap-3">
             <select className="bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-slate-200">
