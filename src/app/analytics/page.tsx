@@ -1,240 +1,246 @@
-import DashboardLayout from "@/components/DashboardLayout";
+"use client";
 
-const monthlyData = [
-  { month: "Sep", transactions: 450, revenue: 1800, customers: 120 },
-  { month: "Oct", transactions: 680, revenue: 2720, customers: 180 },
-  { month: "Nov", transactions: 920, revenue: 3680, customers: 250 },
-  { month: "Dec", transactions: 1250, revenue: 5000, customers: 320 },
-  { month: "Jan", transactions: 890, revenue: 3560, customers: 240 },
-  { month: "Feb", transactions: 1100, revenue: 4400, customers: 290 },
-];
+import { ProtectedLayout } from "../components/ProtectedLayout";
 
-const conversionFunnel = [
-  { stage: "Message Sent", count: 8420, percentage: 100 },
-  { stage: "Message Read", count: 6120, percentage: 72.7 },
-  { stage: "Responded", count: 4102, percentage: 48.7 },
-  { stage: "Started Transaction", count: 1247, percentage: 14.8 },
-  { stage: "Slip Received", count: 891, percentage: 10.6 },
-  { stage: "Completed", count: 3891, percentage: 46.2 },
-];
+interface AnalyticsData {
+  velocity: number[];
+  burnDown: number[];
+  agentProductivity: { name: string; tasks: number; hours: number }[];
+  taskDistribution: { label: string; value: number; color: string }[];
+}
 
-const bankDistribution = [
-  { bank: "BRI", count: 1456, percentage: 37.4, color: "bg-blue-500" },
-  { bank: "BCA", count: 982, percentage: 25.2, color: "bg-purple-500" },
-  { bank: "Mandiri", count: 756, percentage: 19.4, color: "bg-yellow-500" },
-  { bank: "BNI", count: 697, percentage: 17.9, color: "bg-emerald-500" },
-];
+const analyticsData: AnalyticsData = {
+  velocity: [8, 12, 10, 15, 18, 14, 20],
+  burnDown: [50, 45, 42, 38, 35, 30, 25, 20, 15, 10, 5, 0],
+  agentProductivity: [
+    { name: "Samantha", tasks: 12, hours: 45 },
+    { name: "Dylan", tasks: 8, hours: 32 },
+    { name: "Tasha", tasks: 6, hours: 28 },
+    { name: "Mason", tasks: 10, hours: 38 },
+    { name: "Priya", tasks: 7, hours: 30 },
+    { name: "Ellie", tasks: 9, hours: 35 },
+  ],
+  taskDistribution: [
+    { label: "Completed", value: 24, color: "#10b981" },
+    { label: "In Progress", value: 12, color: "#3b82f6" },
+    { label: "Review", value: 5, color: "#f59e0b" },
+    { label: "Backlog", value: 18, color: "#64748b" },
+  ],
+};
 
-const topSenders = [
-  { name: "Rina Wati", amount: 12500, transactions: 28, lastActive: "2 hours ago" },
-  { name: "Dina Lestari", amount: 8900, transactions: 15, lastActive: "5 hours ago" },
-  { name: "Budi Santoso", amount: 7200, transactions: 12, lastActive: "1 day ago" },
-  { name: "Siti Rahayu", amount: 6500, transactions: 7, lastActive: "3 days ago" },
-  { name: "Ahmad Fauzi", amount: 5800, transactions: 6, lastActive: "1 week ago" },
-];
-
-const hourlyActivity = [
-  { hour: "00:00", count: 12 },
-  { hour: "04:00", count: 8 },
-  { hour: "08:00", count: 45 },
-  { hour: "12:00", count: 89 },
-  { hour: "16:00", count: 67 },
-  { hour: "20:00", count: 34 },
-];
-
-export default function Analytics() {
-  const maxMonthly = Math.max(...monthlyData.map(d => d.transactions));
-  const maxHourly = Math.max(...hourlyActivity.map(h => h.count));
-
+function BarChart({ data, max }: { data: number[]; max: number }) {
   return (
-    <DashboardLayout>
-      <div className="space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold">Analytics</h1>
-            <p className="text-slate-400">Deep insights into agency delivery and revenue operations</p>
-          </div>
-          <div className="flex gap-3">
-            <select className="bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-slate-200">
-              <option>Last 30 days</option>
-              <option>Last 90 days</option>
-              <option>This year</option>
-            </select>
-            <button className="px-4 py-2 bg-blue-600 hover:bg-blue-500 rounded-lg font-medium transition-colors">
-              Export Report
-            </button>
-          </div>
+    <div className="flex items-end gap-2 h-32">
+      {data.map((value, i) => (
+        <div key={i} className="flex-1 flex flex-col items-center gap-1">
+          <div
+            className="w-full bg-gradient-to-t from-blue-600 to-blue-400 rounded-t-lg transition-all"
+            style={{ height: `${(value / max) * 100}%` }}
+          />
+          <span className="text-xs text-slate-500">{value}</span>
         </div>
-
-        {/* KPI Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <KPICard title="Conversion Rate" value="14.8%" subtitle="Msg to Transaction" trend="+2.3%" trendUp={true} />
-          <KPICard title="Avg. Transaction" value="RM 425" subtitle="Per customer" trend="+5.1%" trendUp={true} />
-          <KPICard title="Response Rate" value="48.7%" subtitle="Of messages read" trend="+1.2%" trendUp={true} />
-          <KPICard title="Customer LTV" value="RM 1,240" subtitle="Lifetime value" trend="+8.4%" trendUp={true} />
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Monthly Chart */}
-          <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-6">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-lg font-semibold">Monthly Performance</h2>
-              <div className="flex gap-4 text-sm">
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full bg-blue-500"></div>
-                  <span className="text-slate-400">Transactions</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="flex items-end justify-between h-64 gap-4">
-              {monthlyData.map((data) => (
-                <div key={data.month} className="flex-1 flex flex-col items-center gap-2">
-                  <div className="w-full bg-slate-800 rounded-t-lg relative overflow-hidden" style={{ height: `${(data.transactions / maxMonthly) * 200}px` }}>
-                    <div className="absolute bottom-0 w-full bg-gradient-to-t from-blue-600 to-blue-400 rounded-t-lg transition-all hover:from-blue-500 hover:to-blue-300" style={{ height: "100%" }} />
-                  </div>
-                  <div className="text-center">
-                    <p className="text-sm font-medium">{data.transactions}</p>
-                    <p className="text-xs text-slate-500">{data.month}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Conversion Funnel */}
-          <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-6">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-lg font-semibold">Conversion Funnel</h2>
-              <button className="text-sm text-blue-400 hover:text-blue-300">View Details →</button>
-            </div>
-
-            <div className="space-y-3">
-              {conversionFunnel.map((stage, index) => (
-                <div key={stage.stage}>
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-sm">{stage.stage}</span>
-                    <div className="flex items-center gap-3">
-                      <span className="text-sm font-medium">{stage.count.toLocaleString()}</span>
-                      <span className="text-xs text-slate-400">{stage.percentage}%</span>
-                    </div>
-                  </div>
-                  <div className="w-full bg-slate-800 rounded-full h-3">
-                    <div
-                      className="h-3 rounded-full bg-gradient-to-r from-blue-500 to-purple-500"
-                      style={{ width: `${stage.percentage}%` }}
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Bank Distribution */}
-          <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-6">
-            <h2 className="text-lg font-semibold mb-6">Bank Distribution</h2>
-
-            <div className="space-y-4">
-              {bankDistribution.map((bank) => (
-                <div key={bank.bank}>
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-sm">{bank.bank}</span>
-                    <span className="text-sm font-medium">{bank.percentage}%</span>
-                  </div>
-                  <div className="w-full bg-slate-800 rounded-full h-2">
-                    <div className={`h-2 rounded-full ${bank.color}`} style={{ width: `${bank.percentage}%` }} />
-                  </div>
-                  <p className="text-xs text-slate-500 mt-1">{bank.count.toLocaleString()} transactions</p>
-                </div>
-              ))}
-            </div>
-
-            <div className="mt-6 p-4 bg-slate-800/50 rounded-lg">
-              <p className="text-sm text-slate-400">Total Bank Transactions</p>
-              <p className="text-2xl font-bold">3,891</p>
-            </div>
-          </div>
-
-          {/* Hourly Activity */}
-          <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-6">
-            <h2 className="text-lg font-semibold mb-6">Peak Activity Hours</h2>
-
-            <div className="space-y-3">
-              {hourlyActivity.map((hour) => (
-                <div key={hour.hour}>
-                  <div className="flex items-center gap-3">
-                    <span className="text-sm w-16">{hour.hour}</span>
-                    <div className="flex-1 bg-slate-800 rounded-full h-4">
-                      <div
-                        className="h-4 rounded-full bg-gradient-to-r from-emerald-500 to-emerald-400"
-                        style={{ width: `${(hour.count / maxHourly) * 100}%` }}
-                      />
-                    </div>
-                    <span className="text-sm w-10 text-right">{hour.count}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <div className="mt-6 p-4 bg-gradient-to-r from-emerald-500/20 to-blue-500/20 border border-emerald-500/30 rounded-lg">
-              <p className="text-sm">📈 Peak time: <strong>12:00 PM - 2:00 PM</strong></p>
-              <p className="text-xs text-slate-400 mt-1">Best time to send broadcasts</p>
-            </div>
-          </div>
-
-          {/* Top Senders */}
-          <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-6">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-lg font-semibold">Top Senders</h2>
-              <button className="text-sm text-blue-400 hover:text-blue-300">View All →</button>
-            </div>
-
-            <div className="space-y-4">
-              {topSenders.map((sender, index) => (
-                <div key={index} className="flex items-center justify-between p-3 bg-slate-800/50 rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
-                      index === 0 ? "bg-yellow-500/20 text-yellow-400" :
-                      index === 1 ? "bg-slate-400/20 text-slate-300" :
-                      index === 2 ? "bg-amber-600/20 text-amber-600" :
-                      "bg-slate-700 text-slate-400"
-                    }`}>
-                      {index + 1}
-                    </div>
-                    <div>
-                      <p className="font-medium text-sm">{sender.name}</p>
-                      <p className="text-xs text-slate-400">{sender.transactions} transactions</p>
-                    </div>
-                  </div>
-
-                  <div className="text-right">
-                    <p className="font-medium">RM {sender.amount.toLocaleString()}</p>
-                    <p className="text-xs text-slate-400">{sender.lastActive}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-    </DashboardLayout>
+      ))}
+    </div>
   );
 }
 
-function KPICard({ title, value, subtitle, trend, trendUp }: { title: string; value: string; subtitle: string; trend: string; trendUp: boolean }) {
+function LineChart({ data }: { data: number[] }) {
+  const max = Math.max(...data);
+  const min = Math.min(...data);
+  const range = max - min || 1;
+  
+  const points = data.map((value, i) => {
+    const x = (i / (data.length - 1)) * 100;
+    const y = 100 - ((value - min) / range) * 100;
+    return `${x},${y}`;
+  }).join(" ");
+
   return (
-    <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-6">
-      <p className="text-sm text-slate-400 mb-1">{title}</p>
-      <div className="flex items-end justify-between">
-        <p className="text-3xl font-bold">{value}</p>
-        <span className={`text-sm px-2 py-1 rounded-full ${trendUp ? "bg-emerald-500/20 text-emerald-400" : "bg-red-500/20 text-red-400"}`}>
-          {trend}
-        </span>
-      </div>
-      <p className="text-xs text-slate-500 mt-2">{subtitle}</p>
+    <div className="h-32 relative">
+      <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="w-full h-full">
+        <defs>
+          <linearGradient id="lineGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stopColor="#3b82f6" stopOpacity="0.3" />
+            <stop offset="100%" stopColor="#3b82f6" stopOpacity="0" />
+          </linearGradient>
+        </defs>
+        <polygon points={`0,100 ${points} 100,100`} fill="url(#lineGradient)" />
+        <polyline
+          points={points}
+          fill="none"
+          stroke="#3b82f6"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
     </div>
+  );
+}
+
+function DonutChart({ data }: { data: { label: string; value: number; color: string }[] }) {
+  const total = data.reduce((sum, item) => sum + item.value, 0);
+  let currentAngle = 0;
+
+  return (
+    <div className="flex items-center gap-6">
+      <svg viewBox="0 0 100 100" className="w-32 h-32">
+        {data.map((item, i) => {
+          const angle = (item.value / total) * 360;
+          const startAngle = currentAngle;
+          currentAngle += angle;
+          
+          const startRad = (startAngle * Math.PI) / 180;
+          const endRad = ((startAngle + angle) * Math.PI) / 180;
+          
+          const x1 = 50 + 40 * Math.cos(startRad);
+          const y1 = 50 + 40 * Math.sin(startRad);
+          const x2 = 50 + 40 * Math.cos(endRad);
+          const y2 = 50 + 40 * Math.sin(endRad);
+          
+          const largeArc = angle > 180 ? 1 : 0;
+          
+          return (
+            <path
+              key={i}
+              d={`M 50 50 L ${x1} ${y1} A 40 40 0 ${largeArc} 1 ${x2} ${y2} Z`}
+              fill={item.color}
+              stroke="#0f172a"
+              strokeWidth="2"
+            />
+          );
+        })}
+        <circle cx="50" cy="50" r="25" fill="#0f172a" />
+        <text x="50" y="48" textAnchor="middle" fill="white" fontSize="12" fontWeight="bold">
+          {total}
+        </text>
+        <text x="50" y="60" textAnchor="middle" fill="#94a3b8" fontSize="8">
+          Total
+        </text>
+      </svg>
+      
+      <div className="space-y-2">
+        {data.map((item, i) => (
+          <div key={i} className="flex items-center gap-2">
+            <span className="w-3 h-3 rounded" style={{ backgroundColor: item.color }} />
+            <span className="text-sm text-slate-400">{item.label}: {item.value}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export default function AnalyticsPage() {
+  return (
+    <ProtectedLayout>
+      <AnalyticsContent />
+    </ProtectedLayout>
+  );
+}
+
+function AnalyticsContent() {
+  return (
+    <main className="max-w-7xl mx-auto px-6 py-8">
+      {/* Key Metrics */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+        <div className="bg-slate-900/50 border border-slate-800 rounded-2xl p-6">
+          <p className="text-sm text-slate-400 mb-1">Tasks Completed</p>
+          <p className="text-3xl font-bold text-emerald-400">24</p>
+          <p className="text-xs text-slate-500">+12% from last week</p>
+        </div>
+        <div className="bg-slate-900/50 border border-slate-800 rounded-2xl p-6">
+          <p className="text-sm text-slate-400 mb-1">Avg Velocity</p>
+          <p className="text-3xl font-bold text-blue-400">14.1</p>
+          <p className="text-xs text-slate-500">tasks/week</p>
+        </div>
+        <div className="bg-slate-900/50 border border-slate-800 rounded-2xl p-6">
+          <p className="text-sm text-slate-400 mb-1">Completion Rate</p>
+          <p className="text-3xl font-bold text-purple-400">42%</p>
+          <p className="text-xs text-slate-500">of total tasks</p>
+        </div>
+        <div className="bg-slate-900/50 border border-slate-800 rounded-2xl p-6">
+          <p className="text-sm text-slate-400 mb-1">On-time Delivery</p>
+          <p className="text-3xl font-bold text-amber-400">87%</p>
+          <p className="text-xs text-slate-500">3 late this week</p>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        <div className="bg-slate-900/50 border border-slate-800 rounded-2xl p-6">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-lg font-semibold">📈 Team Velocity</h2>
+            <span className="text-xs text-slate-500">Tasks completed per week</span>
+          </div>
+          <BarChart data={analyticsData.velocity} max={25} />
+        </div>
+
+        <div className="bg-slate-900/50 border border-slate-800 rounded-2xl p-6">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-lg font-semibold">🔥 Sprint Burn-down</h2>
+            <span className="text-xs text-slate-500">Remaining tasks over time</span>
+          </div>
+          <LineChart data={analyticsData.burnDown} />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="bg-slate-900/50 border border-slate-800 rounded-2xl p-6">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-lg font-semibold">👥 Agent Productivity</h2>
+            <span className="text-xs text-slate-500">Tasks completed this week</span>
+          </div>
+          <div className="space-y-4">
+            {analyticsData.agentProductivity.map((agent) => (
+              <div key={agent.name} className="flex items-center gap-4">
+                <div className="w-24">
+                  <p className="text-sm font-medium text-slate-200">{agent.name}</p>
+                </div>
+                <div className="flex-1">
+                  <div className="flex items-center gap-2">
+                    <div className="flex-1 bg-slate-800 rounded-full h-2">
+                      <div
+                        className="h-2 rounded-full bg-gradient-to-r from-blue-500 to-purple-500"
+                        style={{ width: `${(agent.tasks / 15) * 100}%` }}
+                      />
+                    </div>
+                    <span className="text-sm text-slate-400 w-8">{agent.tasks}</span>
+                  </div>
+                </div>
+                <div className="w-20 text-right">
+                  <p className="text-xs text-slate-500">{agent.hours}h</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="bg-slate-900/50 border border-slate-800 rounded-2xl p-6">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-lg font-semibold">📊 Task Distribution</h2>
+            <span className="text-xs text-slate-500">By status</span>
+          </div>
+          <DonutChart data={analyticsData.taskDistribution} />
+        </div>
+      </div>
+
+      <div className="mt-6 bg-gradient-to-r from-blue-600/20 to-purple-600/20 border border-blue-500/30 rounded-2xl p-6">
+        <h3 className="text-lg font-semibold mb-4">💡 Insights</h3>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="bg-slate-900/50 rounded-xl p-4">
+            <p className="text-sm text-emerald-400 font-medium mb-1">🚀 High Performer</p>
+            <p className="text-sm text-slate-400">Samantha completed 12 tasks this week, 50% above average.</p>
+          </div>
+          <div className="bg-slate-900/50 rounded-xl p-4">
+            <p className="text-sm text-amber-400 font-medium mb-1">⚠️ Attention Needed</p>
+            <p className="text-sm text-slate-400">3 tasks are approaching deadline in the next 2 days.</p>
+          </div>
+          <div className="bg-slate-900/50 rounded-xl p-4">
+            <p className="text-sm text-blue-400 font-medium mb-1">📈 Trending Up</p>
+            <p className="text-sm text-slate-400">Team velocity increased 150% over the last 3 weeks.</p>
+          </div>
+        </div>
+      </div>
+    </main>
   );
 }

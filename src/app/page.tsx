@@ -1,254 +1,189 @@
-import DashboardLayout from "@/components/DashboardLayout";
-import { getDashboardStats, getRecentTransactions, getPipelineStats } from "@/lib/db";
+"use client";
 
-export const dynamic = 'force-dynamic';
+import { ProtectedLayout } from "./components/ProtectedLayout";
+import { useAuth } from "./lib/auth";
+import Link from "next/link";
 
-export default async function Dashboard() {
-  const stats = await getDashboardStats();
-  const recentTransactions = await getRecentTransactions(5);
-  const pipeline = await getPipelineStats();
+export default function Dashboard() {
+  return (
+    <ProtectedLayout>
+      <DashboardContent />
+    </ProtectedLayout>
+  );
+}
 
-  const pipelineStages = [
-    { stage: "Leads Contacted", count: stats.customers, color: "bg-blue-500" },
-    { stage: "Discovery / Response", count: pipeline.responded, color: "bg-purple-500" },
-    { stage: "Awaiting Client Input", count: stats.pendingSlips, color: "bg-amber-500" },
-    { stage: "In Delivery", count: pipeline.inTransaction, color: "bg-cyan-500" },
-    { stage: "Completed", count: pipeline.completed, color: "bg-emerald-500" },
-    { stage: "Blocked / At Risk", count: pipeline.failed, color: "bg-red-500" },
+function DashboardContent() {
+  const { user, isAdmin } = useAuth();
+
+  const projects = [
+    { id: 1, name: "MRI Remittance System", progress: 25, status: "In Progress", deadline: "2026-03-15", color: "blue" },
+    { id: 2, name: "PocketPOS Landing Page", progress: 100, status: "Deployed", deadline: "2026-02-27", color: "green" },
+    { id: 3, name: "PocketPOS Mobile App", progress: 0, status: "Planning", deadline: "2026-03-30", color: "amber" },
+    { id: 4, name: "Bina Digital Website", progress: 0, status: "Backlog", deadline: "2026-04-15", color: "gray" },
+  ];
+
+  const agents = [
+    { id: "samantha", name: "Samantha", emoji: "👩‍💻", role: "Lead Developer", task: "Building dashboard", progress: 60, status: "busy", color: "blue" },
+    { id: "dylan", name: "Dylan", emoji: "📝", role: "Documentation", task: "Writing UAT docs", progress: 30, status: "busy", color: "purple" },
+    { id: "tasha", name: "Tasha", emoji: "🧪", role: "QA Specialist", task: "Test planning", progress: 0, status: "available", color: "green" },
+    { id: "mason", name: "Mason", emoji: "🚀", role: "DevOps", task: "Setup staging", progress: 0, status: "available", color: "orange" },
+    { id: "priya", name: "Priya", emoji: "💼", role: "Business Strategy", task: "Revenue analysis", progress: 80, status: "busy", color: "pink" },
+    { id: "ellie", name: "Ellie", emoji: "🎨", role: "UI/UX Design", task: "Dashboard UI", progress: 40, status: "busy", color: "teal" },
+  ];
+
+  const stats = [
+    { label: "Total Projects", value: "4", change: "+2 this month", color: "blue" },
+    { label: "Active Agents", value: "6", change: "100% utilized", color: "purple" },
+    { label: "Tasks Today", value: "12", change: "8 in progress", color: "amber" },
+    { label: "Upcoming Deadlines", value: "3", change: "Next: Feb 28", color: "red" },
   ];
 
   const getStatusColor = (status: string) => {
     const colors: Record<string, string> = {
-      completed: "bg-emerald-500/20 text-emerald-400 border-emerald-500/30",
-      processing: "bg-cyan-500/20 text-cyan-400 border-cyan-500/30",
-      awaiting_slip: "bg-amber-500/20 text-amber-400 border-amber-500/30",
-      slip_received: "bg-purple-500/20 text-purple-400 border-purple-500/30",
-      failed: "bg-red-500/20 text-red-400 border-red-500/30",
+      "Deployed": "bg-emerald-500/20 text-emerald-400 border-emerald-500/30",
+      "In Progress": "bg-blue-500/20 text-blue-400 border-blue-500/30",
+      "Planning": "bg-amber-500/20 text-amber-400 border-amber-500/30",
+      "Backlog": "bg-gray-500/20 text-gray-400 border-gray-500/30",
+      "busy": "bg-red-500/20 text-red-400",
+      "available": "bg-emerald-500/20 text-emerald-400",
     };
-    return colors[status] || "bg-slate-500/20 text-slate-400";
-  };
-
-  const formatTimeAgo = (date: Date) => {
-    const now = new Date();
-    const diff = now.getTime() - new Date(date).getTime();
-    const minutes = Math.floor(diff / 60000);
-    if (minutes < 1) return 'Just now';
-    if (minutes < 60) return `${minutes} min ago`;
-    const hours = Math.floor(minutes / 60);
-    if (hours < 24) return `${hours} hours ago`;
-    return `${Math.floor(hours / 24)} days ago`;
+    return colors[status] || "bg-gray-500/20 text-gray-400";
   };
 
   return (
-    <DashboardLayout>
-      <div className="space-y-6">
-        {/* Header */}
+    <main className="max-w-7xl mx-auto px-6 py-8">
+      {/* Welcome Banner */}
+      <div className="mb-8 bg-gradient-to-r from-blue-600/20 to-purple-600/20 border border-blue-500/30 rounded-2xl p-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold">Agency Dashboard Overview</h1>
-            <p className="text-slate-400">Real-time insights into Bina Digital delivery operations</p>
+            <h2 className="text-2xl font-bold text-white mb-1">
+              Welcome back, {user?.name}! {user?.avatar}
+            </h2>
+            <p className="text-slate-400">
+              {isAdmin 
+                ? "You have full admin access to manage all projects and agents."
+                : "You have view-only access to monitor project progress."}
+            </p>
           </div>
-          <div className="flex items-center gap-3">
-            <div className="px-4 py-2 bg-emerald-500/10 border border-emerald-500/30 rounded-lg">
-              <span className="text-sm text-emerald-400">Agency Mode • Revenue First</span>
-            </div>
-            <a href="/kanban" className="px-4 py-2 bg-blue-600 hover:bg-blue-500 rounded-lg font-medium transition-colors">
+          {isAdmin && (
+            <Link
+              href="/tasks"
+              className="px-6 py-3 bg-blue-600 hover:bg-blue-500 rounded-xl font-medium transition-colors"
+            >
               + New Task
-            </a>
+            </Link>
+          )}
+        </div>
+      </div>
+
+      {/* Stats Row */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        {stats.map((stat) => (
+          <Link 
+            key={stat.label} 
+            href={stat.label === "Tasks Today" ? "/kanban" : stat.label === "Upcoming Deadlines" ? "/timeline" : "#"}
+            className="bg-slate-900/50 border border-slate-800 rounded-2xl p-6 backdrop-blur-sm hover:border-slate-700 transition-colors block"
+          >
+            <p className="text-sm text-slate-400 mb-1">{stat.label}</p>
+            <p className="text-3xl font-bold text-white mb-1">{stat.value}</p>
+            <p className="text-xs text-slate-500">{stat.change}</p>
+          </Link>
+        ))}
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Projects Panel */}
+        <div className="bg-slate-900/50 border border-slate-800 rounded-2xl p-6 backdrop-blur-sm">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-lg font-semibold flex items-center gap-2">
+              📁 Active Projects
+            </h2>
+            <span className="text-xs bg-slate-800 px-3 py-1 rounded-full text-slate-400">{projects.length} Projects</span>
+          </div>
+
+          <div className="space-y-4">
+            {projects.map((project) => (
+              <div key={project.id} className="bg-slate-800/50 rounded-xl p-4 border border-slate-700/50 hover:border-slate-600 transition-colors">
+                <div className="flex items-start justify-between mb-3">
+                  <div>
+                    <h3 className="font-medium text-slate-200">{project.name}</h3>
+                    <p className="text-xs text-slate-500 mt-1">Due: {project.deadline}</p>
+                  </div>
+                  <span className={`text-xs px-3 py-1 rounded-full border ${getStatusColor(project.status)}`}>
+                    {project.status}
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <div className="flex-1 bg-slate-700 rounded-full h-2">
+                    <div
+                      className="h-2 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 transition-all"
+                      style={{ width: `${project.progress}%` }}
+                    ></div>
+                  </div>
+                  <span className="text-sm font-medium text-slate-400 w-12 text-right">{project.progress}%</span>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
 
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <StatCard
-            title="Total Leads"
-            value={stats.customers.toLocaleString()}
-            subtitle="In pipeline"
-            trend="+12%"
-            trendUp={true}
-            color="blue"
-          />
-          <StatCard
-            title="Total Work Items"
-            value={stats.totalTransactions.toLocaleString()}
-            subtitle="All projects"
-            trend="+8%"
-            trendUp={true}
-            color="purple"
-          />
-          <StatCard
-            title="Completed Deliverables"
-            value={stats.completed.toLocaleString()}
-            subtitle="Shipped"
-            trend="+15%"
-            trendUp={true}
-            color="emerald"
-          />
-          <StatCard
-            title="Revenue Tracked"
-            value={`RM ${stats.revenue.toLocaleString()}`}
-            subtitle="Income dashboard"
-            trend="+10%"
-            trendUp={true}
-            color="amber"
-          />
-        </div>
-
-        {/* Second Row Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="font-semibold">Awaiting Dependencies</h3>
-              <span className="text-amber-400 font-bold">{stats.pendingSlips}</span>
-            </div>
-            <p className="text-sm text-slate-400">Tasks waiting on client/input dependencies</p>
-            <div className="mt-4 w-full bg-slate-800 rounded-full h-2">
-              <div className="h-2 rounded-full bg-amber-500" style={{ width: `${Math.min(stats.pendingSlips * 2, 100)}%` }} />
+        {/* Agents Panel */}
+        <div className="bg-slate-900/50 border border-slate-800 rounded-2xl p-6 backdrop-blur-sm">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-lg font-semibold flex items-center gap-2">
+              👥 Agent Activity
+            </h2>
+            <div className="flex gap-2">
+              <span className="flex items-center gap-1 text-xs text-slate-400">
+                <span className="w-2 h-2 rounded-full bg-emerald-500"></span> Available
+              </span>
+              <span className="flex items-center gap-1 text-xs text-slate-400">
+                <span className="w-2 h-2 rounded-full bg-red-500"></span> Busy
+              </span>
             </div>
           </div>
 
-          <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="font-semibold">In Execution</h3>
-              <span className="text-cyan-400 font-bold">{stats.processing}</span>
-            </div>
-            <p className="text-sm text-slate-400">Active delivery tasks</p>
-            <div className="mt-4 w-full bg-slate-800 rounded-full h-2">
-              <div className="h-2 rounded-full bg-cyan-500" style={{ width: `${Math.min(stats.processing * 5, 100)}%` }} />
-            </div>
-          </div>
-
-          <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="font-semibold">Blocked</h3>
-              <span className="text-red-400 font-bold">{stats.failed}</span>
-            </div>
-            <p className="text-sm text-slate-400">Requires intervention</p>
-            <div className="mt-4 w-full bg-slate-800 rounded-full h-2">
-              <div className="h-2 rounded-full bg-red-500" style={{ width: `${Math.min(stats.failed * 10, 100)}%` }} />
-            </div>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Pipeline */}
-          <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-6">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-lg font-semibold">Delivery Pipeline</h2>
-              <button className="text-sm text-blue-400 hover:text-blue-300">View All →</button>
-            </div>
-
-            <div className="space-y-4">
-              {pipelineStages.map((stage, index) => {
-                const maxCount = Math.max(...pipelineStages.map(s => s.count)) || 1;
-                const percentage = (stage.count / maxCount) * 100;
-                
-                return (
-                  <div key={index}>
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-sm text-slate-300">{stage.stage}</span>
-                      <span className="text-sm font-medium">{stage.count.toLocaleString()}</span>
+          <div className="space-y-3">
+            {agents.map((agent) => (
+              <div key={agent.id} className="bg-slate-800/50 rounded-xl p-4 border border-slate-700/50 hover:border-slate-600 transition-colors">
+                <div className="flex items-center gap-3">
+                  <div className="relative">
+                    <div className="w-12 h-12 rounded-xl bg-slate-700 flex items-center justify-center text-2xl">
+                      {agent.emoji}
                     </div>
-                    <div className="w-full bg-slate-800 rounded-full h-2">
-                      <div className={`h-2 rounded-full ${stage.color}`} style={{ width: `${percentage}%` }} />
+                    <span className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-slate-800 ${agent.status === 'busy' ? 'bg-red-500' : 'bg-emerald-500'}`}></span>
+                  </div>
+
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="font-medium text-slate-200">{agent.name}</p>
+                        <p className="text-xs text-slate-500">{agent.role}</p>
+                      </div>
+                      <span className={`text-xs px-2 py-1 rounded-full ${getStatusColor(agent.status)}`}>
+                        {agent.status}
+                      </span>
+                    </div>
+
+                    <p className="text-sm text-slate-400 mt-2 truncate">{agent.task}</p>
+
+                    <div className="flex items-center gap-2 mt-2">
+                      <div className="flex-1 bg-slate-700 rounded-full h-1.5">
+                        <div
+                          className="h-1.5 rounded-full bg-gradient-to-r from-emerald-500 to-teal-500"
+                          style={{ width: `${agent.progress}%` }}
+                        ></div>
+                      </div>
+                      <span className="text-xs text-slate-500 w-10 text-right">{agent.progress}%</span>
                     </div>
                   </div>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Recent Transactions */}
-          <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-6">
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                <h2 className="text-lg font-semibold">Recent Work Items</h2>
+                </div>
               </div>
-              <a href="/transactions" className="text-sm text-blue-400 hover:text-blue-300">View All →</a>
-            </div>
-
-            {recentTransactions.length === 0 ? (
-              <div className="text-center py-8 text-slate-400">
-                <p>No work items yet</p>
-                <p className="text-sm mt-2">Create and move tasks in Kanban to see live activity here</p>
-              </div>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="text-left text-sm text-slate-400 border-b border-slate-800">
-                      <th className="pb-3 font-medium">Reference</th>
-                      <th className="pb-3 font-medium">Project/Owner</th>
-                      <th className="pb-3 font-medium">Value</th>
-                      <th className="pb-3 font-medium">Status</th>
-                      <th className="pb-3 font-medium">Time</th>
-                    </tr>
-                  </thead>
-                  <tbody className="text-sm">
-                    {recentTransactions.map((tx: any) => (
-                      <tr key={tx.id} className="border-b border-slate-800/50">
-                        <td className="py-3 font-mono text-blue-400">{tx.reference}</td>
-                        <td className="py-3">{tx.recipient_name}</td>
-                        <td className="py-3">RM {tx.amount_myr}</td>
-                        <td className="py-3">
-                          <span className={`px-2 py-1 rounded-full text-xs border ${getStatusColor(tx.status)}`}>
-                            {tx.status}
-                          </span>
-                        </td>
-                        <td className="py-3 text-slate-400">{formatTimeAgo(tx.created_at)}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
+            ))}
           </div>
         </div>
       </div>
-    </DashboardLayout>
-  );
-}
-
-function StatCard({
-  title,
-  value,
-  subtitle,
-  trend,
-  trendUp,
-  color,
-}: {
-  title: string;
-  value: string;
-  subtitle: string;
-  trend: string;
-  trendUp: boolean;
-  color: string;
-}) {
-  const colorClasses: Record<string, string> = {
-    blue: "from-blue-500/20 to-blue-600/20 border-blue-500/30",
-    cyan: "from-cyan-500/20 to-cyan-600/20 border-cyan-500/30",
-    emerald: "from-emerald-500/20 to-emerald-600/20 border-emerald-500/30",
-    purple: "from-purple-500/20 to-purple-600/20 border-purple-500/30",
-    amber: "from-amber-500/20 to-amber-600/20 border-amber-500/30",
-  };
-
-  return (
-    <div className={`bg-gradient-to-br ${colorClasses[color]} border rounded-xl p-6`}>
-      <div className="flex items-start justify-between">
-        <div>
-          <p className="text-sm text-slate-400 mb-1">{title}</p>
-          <p className="text-3xl font-bold text-white">{value}</p>
-          <p className="text-xs text-slate-500 mt-1">{subtitle}</p>
-        </div>
-        <span
-          className={`text-xs px-2 py-1 rounded-full ${
-            trendUp ? "bg-emerald-500/20 text-emerald-400" : "bg-red-500/20 text-red-400"
-          }`}
-        >
-          {trend}
-        </span>
-      </div>
-    </div>
+    </main>
   );
 }

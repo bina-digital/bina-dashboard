@@ -1,12 +1,21 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { AuthProvider } from "./lib/auth";
 
-const inter = Inter({ subsets: ["latin"] });
+const geistSans = Geist({
+  variable: "--font-geist-sans",
+  subsets: ["latin"],
+});
+
+const geistMono = Geist_Mono({
+  variable: "--font-geist-mono",
+  subsets: ["latin"],
+});
 
 export const metadata: Metadata = {
-  title: "Bina Dashboard - Agency Command Center",
-  description: "Development operations dashboard for Bina Digital projects and agents",
+  title: "Bina Digital Command Center",
+  description: "AI Agent Team Dashboard",
 };
 
 export default function RootLayout({
@@ -16,8 +25,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${inter.className} bg-slate-950 text-slate-100`}>
-        {children}
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-slate-950`}
+      >
+        <AuthProvider>
+          {children}
+        </AuthProvider>
       </body>
     </html>
   );
